@@ -2,17 +2,22 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type Props = {
-  type: number;
+  click: number;
 };
 
 export default function SortingImage(props: Props) {
   //console.log("mounted, Sorting Image props:", props);
 
-  const [imgPath, setImgPath] = useState("");
-  const [type, setType] = useState(props.type);
+  const [imgPath, setImgPath] = useState("/noSort.svg");
 
+  let click = props.click;
+
+  /* console.log("imgPath: ", imgPath);
+  console.log("click: ", click);
+ */
   useEffect(() => {
-    switch (type) {
+    //    console.log("in useEffect");
+    switch (click) {
       case 0:
         setImgPath("/noSort.svg");
         break;
@@ -24,7 +29,7 @@ export default function SortingImage(props: Props) {
         setImgPath("/descendingSort.svg");
         break;
     }
-  }, []);
+  }, [props]);
 
   return (
     <Image

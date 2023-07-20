@@ -40,21 +40,29 @@ export default function Stdtable() {
   // veri sayısı
   const [dataQty, setDataQty] = useState(10);
   // seçilen sorting tipi
-  const [sorting, setSorting] = useState(SortType.noSort);
+  //const [sorting, setSorting] = useState(SortType.noSort);
   const [sortedField, setSortedField] = useState(SortedField.none);
-  // number of clicks on field names for sorting
-  const [click, setClick] = useState(0);
 
   // sortState
-  const [sortState, setSortState] = useState({
-    none: { sortType: SortType.noSort, click: 0 },
-    id: { sortType: SortType.noSort, click: 0 },
-    first_name: { sortType: SortType.noSort, click: 0 },
-    last_name: { sortType: SortType.noSort, click: 0 },
-    email: { sortType: SortType.noSort, click: 0 },
-    gender: { sortType: SortType.noSort, click: 0 },
-    dob: { sortType: SortType.noSort, click: 0 },
-  });
+
+  const [sortStateNoSort, setSortStateNoSort] = useState([
+    { field: "none", sortType: SortType.noSort, click: 0 },
+    { field: "id", sortType: SortType.noSort, click: 0 },
+    { field: "first_name", sortType: SortType.noSort, click: 0 },
+    { field: "last_name", sortType: SortType.noSort, click: 0 },
+    { field: "email", sortType: SortType.noSort, click: 0 },
+    { field: "gender", sortType: SortType.noSort, click: 0 },
+    { field: "dob", sortType: SortType.noSort, click: 0 },
+  ]);
+  const [sortState, setSortState] = useState([
+    { field: "none", sortType: SortType.noSort, click: 0 },
+    { field: "id", sortType: SortType.noSort, click: 0 },
+    { field: "first_name", sortType: SortType.noSort, click: 0 },
+    { field: "last_name", sortType: SortType.noSort, click: 0 },
+    { field: "email", sortType: SortType.noSort, click: 0 },
+    { field: "gender", sortType: SortType.noSort, click: 0 },
+    { field: "dob", sortType: SortType.noSort, click: 0 },
+  ]);
 
   // METHODS
   function changeValue(e: ChangeEvent<HTMLInputElement>) {
@@ -67,45 +75,113 @@ export default function Stdtable() {
     }
   }
 
+  // takes the field from click event on the table cell
+  // finds the related click propert from sortState and increases it / stores it (modulus of 3)
   function setSortingTypeOnClick(fieldName: string) {
     console.log("clicked Field: ", fieldName);
-    console.log("sortedField, SortedField.fieldName: ", SortedField[fieldName]);
-    setSortState({
-      ...sortState,
-      `${fieldName}`: {
-        ...sortState.id,
-        click: (sortState[fieldName].click + 1) % 3,
-      },
-    });
-    console.log("after click, sortState:", sortState);
-    console.log("after click, sortState[fieldName]:", sortState[fieldName]);
+    //console.log("sortedField, SortedField.fieldName: ", SortedField[fieldName]); //1,2,3,4,...
+    let index: number = SortedField[fieldName]; //0,1,2,3,4,...
+    // console.log("selected sortState elem., sortState.index", sortState[index]); // {field: ...}
+    let memClick = sortState[index].click;
+    console.log("memClick: ", memClick);
+    let tempSortState = JSON.parse(JSON.stringify(sortStateNoSort));
+    tempSortState[index].click = (memClick + 1) % 3;
+    console.log("tempSortState[index].click: ", tempSortState[index].click);
+    setSortState([...tempSortState]);
+    console.log(
+      "before calling sortField(sortingtype, fieldname), sortState[index].click, fieldName: ",
+      sortState[index].click,
+      fieldName
+    );
+    sortField(tempSortState[index].click, fieldName);
   }
 
   // sorting function
   // TO DO
-  function sortField(sortingType: number, sortedField: number) {
-    let tempdata = [...originalData];
-    console.log("unsorted tempdata: ", tempdata.slice(0, 20));
-    tempdata.sort((a: DataFormat, b: DataFormat) => {
-      if (a.first_name.toUpperCase() < b.first_name.toUpperCase()) {
-        console.log("a.first_name.toUpperCase() < b.first_name.toUpperCase()");
-        return -1;
-      } else {
-        return 1;
-      }
-    });
-    console.log("tempdata", tempdata.slice(0, 20));
+  function sortField(sortingType: number, sortedField: string) {
+    let tempdata = JSON.parse(JSON.stringify(originalData));
+    console.log("tempdata: ", tempdata);
+    console.log(
+      "in func sortField, sortingType, sortedField:",
+      sortingType,
+      sortedField
+    );
+
+    switch (sortingType) {
+      case 0:
+        // no sort
+        console.log("no sort");
+        setData(JSON.parse(JSON.stringify(tempdata)));
+        break;
+      case 1:
+        // ascending sort
+        console.log("sort ascending");
+        ascendingSort();
+        break;
+      case 2:
+        //descending sort
+        console.log("sort descending");
+        descendingSort();
+        break;
+    }
+
+    function ascendingSort() {
+      tempdata.sort((a: DataFormat, b: DataFormat) => {
+        switch (typeof a[`${sortedField}`]) {
+          case "string":
+            if (
+              a[`${sortedField}`].toUpperCase() <
+              b[`${sortedField}`].toUpperCase()
+            ) {
+              return -1;
+            } else {
+              return 1;
+            }
+            break;
+          case "number":
+            if (a[`${sortedField}`] < b[`${sortedField}`]) {
+              return -1;
+            } else {
+              return 1;
+            }
+        }
+      });
+      setData(JSON.parse(JSON.stringify(tempdata)));
+    }
+
+    function descendingSort() {
+      tempdata.sort((a: DataFormat, b: DataFormat) => {
+        switch (typeof a[`${sortedField}`]) {
+          case "string":
+            if (
+              a[`${sortedField}`].toUpperCase() >
+              b[`${sortedField}`].toUpperCase()
+            ) {
+              return -1;
+            } else {
+              return 1;
+            }
+            break;
+          case "number":
+            if (a[`${sortedField}`] > b[`${sortedField}`]) {
+              return -1;
+            } else {
+              return 1;
+            }
+        }
+      });
+      setData(JSON.parse(JSON.stringify(tempdata)));
+    }
   }
 
-  // for testing. erase later
-  sortField(0, 0);
-
   //INFO LOGS
-  console.log("data length: ", data.length);
-  console.log("data[0].dob: ", data[0].dob);
-  console.log("dataQty: ", dataQty);
-  console.log("sorting:", sorting);
-  console.log("click: ", click);
+  //console.log("data length: ", data.length);
+  console.log("originalData: ", originalData);
+  //console.log("data[0].dob: ", data[0].dob);
+  //console.log("dataQty: ", dataQty);
+  //console.log("sorting:", sorting);
+  console.log("sortState: ", sortState);
+  console.log("sortStateNoSort: ", sortStateNoSort);
 
   return (
     <main>
@@ -167,7 +243,7 @@ export default function Stdtable() {
               >
                 <div className="flex">
                   id
-                  <SortingImage type={sortState.id.sortType} />
+                  {<SortingImage click={sortState[SortedField.id].click} />}
                 </div>
               </th>
               <th
@@ -177,7 +253,11 @@ export default function Stdtable() {
               >
                 <div className="flex">
                   first name
-                  <SortingImage type={sortState.first_name.sortType} />
+                  {
+                    <SortingImage
+                      click={sortState[SortedField.first_name].click}
+                    />
+                  }
                 </div>
               </th>
               <th
@@ -187,7 +267,11 @@ export default function Stdtable() {
               >
                 <div className="flex">
                   Last Name
-                  <SortingImage type={sortState.last_name.sortType} />
+                  {
+                    <SortingImage
+                      click={sortState[SortedField.last_name].click}
+                    />
+                  }
                 </div>
               </th>
               <th
@@ -196,7 +280,8 @@ export default function Stdtable() {
                 onClick={() => setSortingTypeOnClick("email")}
               >
                 <div className="flex">
-                  e-mail <SortingImage type={sortState.email.sortType} />
+                  e-mail
+                  {<SortingImage click={sortState[SortedField.email].click} />}
                 </div>
               </th>
               <th
@@ -205,7 +290,8 @@ export default function Stdtable() {
                 onClick={() => setSortingTypeOnClick("gender")}
               >
                 <div className="flex">
-                  Gender <SortingImage type={sortState.gender.sortType} />
+                  Gender
+                  {<SortingImage click={sortState[SortedField.gender].click} />}
                 </div>
               </th>
               <th
@@ -215,7 +301,7 @@ export default function Stdtable() {
               >
                 <div className="flex">
                   Birth Date
-                  <SortingImage type={sortState.dob.sortType} />
+                  {<SortingImage click={sortState[SortedField.dob].click} />}
                 </div>
               </th>
             </tr>
